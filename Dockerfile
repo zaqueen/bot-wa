@@ -18,14 +18,13 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
 COPY . .
 
 
 # Buat folder cache dan auth
 RUN mkdir -p /app/.wwebjs_auth /app/.wwebjs_cache && \
     chmod -R 777 /app/.wwebjs_auth /app/.wwebjs_cache
+    RUN npm install
 
 
 CMD ["node", "index.js"]
