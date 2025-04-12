@@ -1,144 +1,88 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
-const path = require('path');
-const fs = require('fs');
 const handlers = require('./handlers');
 
-// Konfigurasi path untuk session
-const SESSION_DIR = path.join(__dirname, '.wwebjs_auth');
-const SESSION_DEBUG_FILE = path.join(__dirname, 'session-debug.log');
-
-// Pastikan folder session ada
-if (!fs.existsSync(SESSION_DIR)) {
-  fs.mkdirSync(SESSION_DIR, { recursive: true });
-}
+const { Client } = require('whatsapp-web.js');
+const path = require('path');
 
 const client = new Client({
-  authStrategy: new LocalAuth({
-    clientId: "bot-wa", // Nama unik untuk session
-    dataPath: SESSION_DIR
-  }),
   puppeteer: {
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+    executablePath: '/usr/bin/chromium',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--single-process',
-      '--no-zygote',
-      '--disable-gpu',
-      '--disable-accelerated-2d-canvas',
-      '--disable-software-rasterizer'
-    ],
-    timeout: 120000  // Timeout 2 menit
+      '--disable-dev-shm-usage'
+    ]
   },
-  takeoverOnConflict: true, // Auto-reconnect
-  qrTimeoutMs: 60000 // Timeout QR 1 menit
+  authStrategy: {
+    backupPath: path.resolve('/data/session-backup.json'), // Untuk backup eksternal
+    restore: (client) => {
+      // Coba restore dari folder .wwebjs_auth
+      const sessionPath = path.resolve('.wwebjs_auth/session.json');
+      if (require('fs').existsSync(sessionPath)) {
+        return require(sessionPath);
+      }
+      return null;
+    }
+  }
 });
 
-// Debug session
-function logSessionState() {
-  const files = fs.existsSync(SESSION_DIR) ? 
-    fs.readdirSync(SESSION_DIR).join(', ') : 'none';
-  const log = `[${new Date().toISOString()}] Session files: ${files}\n`;
-  fs.appendFileSync(SESSION_DEBUG_FILE, log);
-}
+// Debugging paths
+console.log('Auth path:', path.resolve('.wwebjs_auth'));
+console.log('Cache path:', path.resolve('.wwebjs_cache'));
 
-async function initialize() {
-  // Log session awal
-  logSessionState();
-
+// Function to initialize the WhatsApp bot
+function initialize() {
   client.on('qr', (qr) => {
+    // Generate and display QR code
     console.log('QR Code diterima, silahkan scan dengan WhatsApp Anda:');
     qrcode.generate(qr, { small: true });
-    
-    // Untuk environment server (Koyeb)
-    console.log('Alternatif QR Text:');
-    console.log(qr); // Bisa discan dengan WhatsApp > Linked Devices > Link with QR Code
   });
 
   client.on('ready', () => {
     console.log('WhatsApp Bot siap digunakan!');
-    logSessionState();
   });
 
   client.on('authenticated', () => {
     console.log('Autentikasi berhasil!');
-    logSessionState();
   });
 
   client.on('auth_failure', (msg) => {
     console.error('Autentikasi gagal:', msg);
-    fs.writeFileSync(SESSION_DEBUG_FILE, `Auth Failed: ${msg}\n`, { flag: 'a' });
-  });
-
-  client.on('disconnected', (reason) => {
-    console.log('Client logged out:', reason);
-    fs.writeFileSync(SESSION_DEBUG_FILE, `Disconnected: ${reason}\n`, { flag: 'a' });
   });
 
   // Handle incoming messages
   client.on('message', async (msg) => {
-    try {
-      await handlers.handleMessage(client, msg);
-    } catch (error) {
-      console.error('Error handling message:', error);
-    }
+    await handlers.handleMessage(client, msg);
   });
 
-  // Handle errors
-  client.on('error', (error) => {
-    console.error('Client error:', error);
-    fs.writeFileSync(SESSION_DEBUG_FILE, `Error: ${error.stack}\n`, { flag: 'a' });
-  });
-
-  try {
-    await client.initialize();
-  } catch (error) {
-    console.error('Initialization error:', error);
-    throw error;
-  }
+  // Initialize the client
+  client.initialize();
 
   return client;
 }
 
-async function sendMessage(to, message, options = {}) {
-  try {
-    console.log(`Mengirim pesan ke ${to}...`);
-    const formattedNumber = to.includes('@c.us') ? to : `${to}@c.us`;
-    const result = await client.sendMessage(formattedNumber, message, options);
-    console.log(`Pesan terkirim ke ${to} [ID: ${result.id.id}]`);
-    return { success: true, messageId: result.id.id };
-  } catch (error) {
-    console.error(`Gagal mengirim pesan ke ${to}:`, error);
-    return { 
-      success: false, 
-      error: error.message,
-      stack: error.stack
-    };
+// Function to send a message to a specific number
+async function sendMessage(to, message) {
+    try {
+      console.log(`Mencoba mengirim pesan ke ${to}...`);
+      const formattedNumber = to.includes('@c.us') ? to : `${to}@c.us`;
+      await client.sendMessage(formattedNumber, message);
+      console.log(`Pesan terkirim ke ${to}`);
+      return true;
+    } catch (error) {
+      console.error(`Gagal mengirim pesan ke ${to}:`, error);
+      return false;
+    }
   }
-}
 
+// Function to shutdown the bot gracefully
 async function shutdown() {
-  try {
-    console.log('Menutup koneksi WhatsApp Bot...');
-    await client.destroy();
-    console.log('WhatsApp Bot ditutup.');
-    logSessionState();
-  } catch (error) {
-    console.error('Error saat shutdown:', error);
-  }
+  console.log('Menutup koneksi WhatsApp Bot...');
+  await client.destroy();
+  console.log('WhatsApp Bot ditutup.');
 }
-
-// Auto-restart jika crash
-process.on('unhandledRejection', (error) => {
-  console.error('Unhandled Rejection:', error);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-});
 
 module.exports = {
   initialize,
