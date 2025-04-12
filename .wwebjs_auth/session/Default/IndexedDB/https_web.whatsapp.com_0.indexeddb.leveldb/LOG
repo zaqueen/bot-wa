@@ -1,0 +1,15 @@
+2025/04/12-19:25:02.946 312c Reusing MANIFEST C:\Users\etha\Documents\KULIAH\SEMESTER 6\CAPSTONE\tesbot - ini keempat\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/04/12-19:25:02.954 312c Recovering log #192
+2025/04/12-19:25:02.955 312c Reusing old log C:\Users\etha\Documents\KULIAH\SEMESTER 6\CAPSTONE\tesbot - ini keempat\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000192.log 
+2025/04/12-19:25:56.021 4cb0 Level-0 table #198: started
+2025/04/12-19:25:56.062 4cb0 Level-0 table #198: 36717 bytes OK
+2025/04/12-19:25:56.103 4cb0 Delete type=0 #192
+2025/04/12-19:25:56.103 4cb0 Manual compaction at level-0 from '\x00<\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00=\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/04/12-19:25:57.945 312c Compacting 1@1 + 2@2 files
+2025/04/12-19:25:58.486 312c Generated table #199@1: 63340 keys, 2235500 bytes
+2025/04/12-19:25:58.761 312c Generated table #200@1: 33262 keys, 1460592 bytes
+2025/04/12-19:25:58.761 312c Compacted 1@1 + 2@2 files => 3696092 bytes
+2025/04/12-19:25:58.831 312c compacted to: files[ 0 0 2 0 0 0 0 ]
+2025/04/12-19:25:58.831 312c Delete type=2 #194
+2025/04/12-19:25:58.831 312c Delete type=2 #195
+2025/04/12-19:25:58.831 312c Delete type=2 #198
