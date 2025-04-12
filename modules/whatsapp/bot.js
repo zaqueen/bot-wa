@@ -3,20 +3,13 @@ const qrcode = require('qrcode-terminal');
 const handlers = require('./handlers');
 
 const client = new Client({
+  authStrategy: new LocalAuth({ 
+    dataPath: './.wwebjs_auth' // pastikan folder ini ikut ke Koyeb
+  }),
   puppeteer: {
+    executablePath: puppeteer.executablePath(),
     headless: true,
-    executablePath: '/usr/bin/chromium',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--single-process',
-      '--no-zygote',
-      '--disable-gpu',
-      '--disable-software-rasterizer',
-      '--disable-features=AudioServiceOutOfProcess'
-    ],
-    timeout: 60000  // Naikkan timeout menjadi 60 detik
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   }
 });
 
