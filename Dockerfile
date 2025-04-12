@@ -2,9 +2,6 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const handlers = require('./handlers');
 
-const { Client } = require('whatsapp-web.js');
-const path = require('path');
-
 const client = new Client({
   puppeteer: {
     headless: true,
@@ -12,25 +9,16 @@ const client = new Client({
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage'
-    ]
-  },
-  authStrategy: {
-    backupPath: path.resolve('/data/session-backup.json'), // Untuk backup eksternal
-    restore: (client) => {
-      // Coba restore dari folder .wwebjs_auth
-      const sessionPath = path.resolve('.wwebjs_auth/session.json');
-      if (require('fs').existsSync(sessionPath)) {
-        return require(sessionPath);
-      }
-      return null;
-    }
+      '--disable-dev-shm-usage',
+      '--single-process',
+      '--no-zygote',
+      '--disable-gpu',
+      '--disable-software-rasterizer',
+      '--disable-features=AudioServiceOutOfProcess'
+    ],
+    timeout: 60000  // Naikkan timeout menjadi 60 detik
   }
 });
-
-// Debugging paths
-console.log('Auth path:', path.resolve('.wwebjs_auth'));
-console.log('Cache path:', path.resolve('.wwebjs_cache'));
 
 // Function to initialize the WhatsApp bot
 function initialize() {
