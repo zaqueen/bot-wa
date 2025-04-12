@@ -22,4 +22,10 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
+
+# Buat folder cache dan auth
+RUN mkdir -p /app/.wwebjs_auth /app/.wwebjs_cache && \
+    chmod -R 777 /app/.wwebjs_auth /app/.wwebjs_cache
+
+
 CMD ["node", "index.js"]
