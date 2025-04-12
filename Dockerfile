@@ -1,20 +1,23 @@
-FROM node:18-alpine
+FROM node:18-slim
 
-# Install Chromium & dependencies untuk Puppeteer
-RUN apk add --no-cache \
+# Install Chromium dan dependencies
+RUN apt-get update && \
+    apt-get install -y \
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+    fonts-ipafont-gothic \
+    fonts-wqy-zenhei \
+    fonts-thai-tlwg \
+    fonts-khmeros \
+    fonts-freefont-ttf \
+    libxss1 \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set environment variable untuk Puppeteer
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Set ENV untuk Puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-
 CMD ["node", "index.js"]
